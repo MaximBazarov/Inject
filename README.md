@@ -9,7 +9,7 @@ ___
 
 Sometimes during the app development process we need to replace instances of classes or actors we use in production code with instances that emulate their work e.g. tests, SwiftUI previews, demo apps etc. 
 
-Ususally that requires additional changes in the code that in turn opens up a whole new layer of errors. handlinge of theese errors is on your shoulders.
+Ususally that requires additional changes in the code that in turn opens up a whole new layer of errors. handling of theese errors is on your shoulders.
 
 Inject lets you express your intent in a way that enables compile-time checking that you have all the instances required for the production. 
 At the same time it let's you replace the instance on any object with a single line of code. 
@@ -132,7 +132,7 @@ I'm saying you have to try it and decide for yourself and that's why:
 
 - Thread safety using `@MainActor`
 - Inject doesn't introduce a container instance. 
-- No need to register instance in a container, defininition of a compoted property with the instance instead. 
+- No need to register instance in a container, defininition of a computed property with the instance instead. 
 - Compile-time check that all the instances provided, which removes a whole layer of errors.
 - Inject's API operates simple concepts like instance, injection/replacement, scope and lifetime.
 - Enables you to keep your code modular for free.
