@@ -55,26 +55,7 @@ Adding the dependency
 Inject is designed for Swift 5. To depend on the Inject package, you need to declare your dependency in your Package.swift:
 
 ```swift
-.package(url: "https://github.com/MaximBazarov/Inject.git", branch: "main"),
-```
-and to your application/library target, add "Inject" to your dependencies, e.g. like this:
-
-```swift
-// Target syntax for Swift up to version 5.1
-.target(
-    name: "BestExampleApp", 
-    dependencies: ["Inject"]
-),
-
-// Target for Swift 5.2
-.target(
-    name: "BestExampleApp", 
-    dependencies: [
-        .product(
-            name: "Inject", // you can set any name you prefer here
-            package: "Inject"
-        )
-    ],
+.package(url: "https://github.com/MaximBazarov/Inject.git", from: "1.0.0")
 ```
 
 ## Concurency
