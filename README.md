@@ -101,19 +101,6 @@ struct RemoteImage_Previews: PreviewProvider {
 }
 ```
 
-## Advanced
-
-By default, all the dependencies are **providing a new instance** (`.temporary`)
-and **for each injection point** (`.local`) 
-and deallocated once an injection point is deallocated.
-```swift
-@Injected(\.networking, .temporary, .local) var network
-```
-
-But you can alter it with `.shared` ``Dependency/Scope`` to provide the same instance to all consumers with `.shared` ``Dependency/Scope`` preferred.
-Also, you can configure a `.permanent` ``Lifespan`` to hold it until the termination of the app.
-
-
 ## Dependency Scope and Lifetime 
 
 By default, all the dependencies are **providing a new instance** (`.temporary`)
