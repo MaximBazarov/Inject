@@ -1,4 +1,4 @@
-// swift-tools-version:5.5
+// swift-tools-version:5.7
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the Inject package open source project
@@ -19,15 +19,14 @@ let package = Package(
     name: "Inject",
     platforms: [
         .macOS(.v10_15),
-        .iOS(.v15),
-        .watchOS(.v7),
-        .tvOS(.v14),
+        .iOS(.v13),
+        .watchOS(.v4),
+        .tvOS(.v11),
     ],
     products: [
         .library(name: "Inject", targets: ["Inject"]),
     ],
-    dependencies: [
-    ],
+    dependencies: [],
     targets: [
         .target(
             name: "Inject", dependencies: [], path: "Sources"
