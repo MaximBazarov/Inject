@@ -2,49 +2,100 @@
 
 Effortless modular dependency injection for Swift.
 
-Inject utilizes the power of the [KeyPath](https://developer.apple.com/documentation/swift/keypath) feature of swift, to identify dependencies.
-Which allows you to define default instances without a need to have a single shared object to register them.   
-As well as compile time check of the dependency graph integrity.
 
-And [structured concurrency feature](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html) to make it thread-safe.
+Sometimes during the app development process we need to replace instances of classes or actors we use in production code with instances that emulate their work e.g. tests, SwiftUI previews, demo apps etc. 
 
-It also allows you to mark an injection point wherever you can have a variable without any burden to validate the dependency graph.
+Ususally that requires additional changes in the code that in turn opens up a whole new layer of errors. handlinge of theese errors is on your shoulders.
 
-For an old component that uses initializer injection, 
-a property injection, a shared instance, or has no injection at all. 
-It takes you a couple of lines of changes to switch it to Inject.   
-Or back, for what it's worth.
+Inject lets you express your intent in a way that enables compile-time checking that you have all the instances required for the production. 
+At the same time it let's you replace the instance on any object with a single line of code. 
 
-## Enabling injection
-To enable the injection of a value, you need two things:
-- Declare a dependency default value by extending the ``DefaultValues``.
+## Usage
+
+A very common problem would be `Image` like component, that takes an `URL` as a parameter instead of an image. For this we would need two parts:
+
+A downloader, with code something like:
 ```swift
+protocol DownloaderInterface {
+    func downloadImage(url: URL) async throws -> UIImage
+}
+
+actor URLSessionDownloader: DownloaderInterface {
+    func downloadImage(url: URL) async throws -> UIImage {
+        // URLSession/dataTask ...
+    }
+}
+```
+
+and a component itself
+
+```swift
+struct RemoteImage: View, Injectable {
+    private var downloader = URLSessionDownloader()
+    @State private var image: UIImage?
+
+    let url: URL
+
+    var body: some View {
+        Image(uiImage: image ?? placeholder)
+            .resizable()
+            .frame(width: 200, height: 200)
+            .onAppear {
+                downloadImage()
+            }
+    }
+
+    func downloadImage() {
+        Task { [url] in
+            self.image = try? await downloader.instance.downloadImage(url: url)
+        }
+    }
+}
+```
+
+I used SwiftUI here for simplicity, Inject doesn't require anything but `Swift 5.7`.
+
+Now the first problem is preview, now it will need an actual `URL` and a network connection, which is not what we want.
+
+To enable injection we need to tell the compiler that we use `URLSessionDownloader` as a default instance for the protocol `DownloaderInterface`:
+
+```swift
+import Inject
+
 extension DefaultValues {
-    var networking: NetworkingInterface { Networking() }
-}
-```
-- Mark the variable where you need the injection as ``Injected`` 
-and point it to the variable you just added into ``DefaultValues``.
-```
-final class MyAwesomeComponent: Injectable {
-    @Injected(\.networking) var network
+    var imageDownloader: DownloaderInterface { URLSessionDownloader() }
 }
 ```
 
-> Note: `MyAwesomeComponent` was marked by empty `Injectable` protocol, 
-it tells the compiler that this class has ``Injectable/injecting(_:for:)`` 
-function.  
+We also can now refer to it with a `KeyPath` `\DefaultValues.imageDownloader` which is very handy since we would need to replace it once if we changed from `URLSession` to something else.
 
-## Injection
+That's all we need to use the instance in our view:
 
-In your code, you don't have to do anything else to make sure the injection works.
-You can inject any instance of an appropriate type into this place in your code.
 ```swift
-let component = MyAwesomeComponent()
-    .injecting(ServiceMock(), for: \.network)
+import Inject
+
+struct RemoteImage: View, Injectable {
+    @Injected(\.imageDownloader) var downloader
 ```
-now the instance provided to the `network`  inside the `component` will be 
-the `ServiceMock()` we provided and not `Networking()` as defined in the ``DefaultValues``
+
+We have to mark our view as `Injectable` which is an empty protocol enabling the `injecting(_:_:)` function. And tell which instance we need, `\.imageDownloader` is a short syntax for `\.DefaultValues.imageDownloader`.
+
+Now in our preview, we can easily replace the production instance of the downloader with our mock that provides a static test image, error, and other cases we want to test.
+
+```swift
+actor MockDownloader: DownloaderInterface {
+    func downloadImage(url: URL) async throws -> UIImage {
+        return testImage
+    }
+}
+
+struct RemoteImage_Previews: PreviewProvider {
+    static var previews: some View {
+        RemoteImage(url: tesImageURL)
+            .injecting(MockDownloader(), for: \.downloader)
+    }
+}
+```
 
 ## Advanced
 
