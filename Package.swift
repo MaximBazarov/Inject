@@ -18,10 +18,10 @@ import PackageDescription
 let package = Package(
     name: "Inject",
     platforms: [
-        .macOS(.v10_15),
+        .macOS(.v12),
         .iOS(.v13),
-        .watchOS(.v4),
-        .tvOS(.v11),
+        .watchOS(.v8),
+        .tvOS(.v15),
     ],
     products: [
         .library(name: "Inject", targets: ["Inject"]),
