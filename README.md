@@ -51,7 +51,7 @@ struct RemoteImage: View, Injectable {
 
     func downloadImage() {
         Task { [url] in
-            self.image = try? await downloader.instance.downloadImage(url: url)
+            self.image = try? await downloader.downloadImage(url: url)
         }
     }
 }
