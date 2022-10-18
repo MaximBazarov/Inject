@@ -110,8 +110,11 @@ public final class Dependency<Value> {
         self.lifespan = lifespan
         self.scope = scope
     }
-    
-    func override(with value: Value) {
+
+
+    /// Overrides the injected value.
+    /// New value will be the one that is returned for ``instance``
+    public func override(with value: Value) {
         localValue = value
     }
     

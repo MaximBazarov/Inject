@@ -57,4 +57,3 @@ class Injected<Value> {
         self.dependency = Dependency(keyPath, lifespan: lifespan, scope: scope)
     }
 }
-
