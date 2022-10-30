@@ -14,104 +14,122 @@ Ususally that requires additional changes in the code that in turn opens up a wh
 Inject lets you express your intent in a way that enables compile-time checking that you have all the instances required for the production. 
 At the same time it let's you replace the instance on any object with a single line of code. 
 
-## Usage
 
-A very common problem would be `Image` like component, that takes an `URL` as a parameter instead of an image. For this we would need two parts:
-
-A downloader, with code something like:
+## How to Use
+Here's an example of a class that needs networking and parser instances to fetch items from the server:
 ```swift
-protocol DownloaderInterface {
-    func downloadImage(url: URL) async throws -> UIImage
-}
+final class BackendSDK {
 
-actor URLSessionDownloader: DownloaderInterface {
-    func downloadImage(url: URL) async throws -> UIImage {
-        // URLSession/dataTask ...
+    @Injected(\.networking) var network
+    @Injected(\.parser) var parser
+
+    func fetchItems() async throws -> [Item] {
+        guard let url = URL(string: baseURL + "/items")
+        else { throw InvalidURL() }
+        let data = try await network.instance.fetch(url)
+        return try await parser.instance.parse(data, as: [Item].self)
     }
 }
 ```
 
-and a component itself
+And here's an example of replacing one of the services with a mock in SwiftUI preview:
 
 ```swift
-struct RemoteImage: View, Injectable {
-    private var downloader = URLSessionDownloader()
-    @State private var image: UIImage?
 
-    let url: URL
-
-    var body: some View {
-        Image(uiImage: image ?? placeholder)
-            .resizable()
-            .frame(width: 200, height: 200)
-            .onAppear {
-                downloadImage()
-            }
-    }
-
-    func downloadImage() {
-        Task { [url] in
-            self.image = try? await downloader.downloadImage(url: url)
-        }
-    }
-}
-```
-
-I used SwiftUI here for simplicity, Inject doesn't require anything but `Swift 5.7`.
-
-Now the first problem is preview, now it will need an actual `URL` and a network connection, which is not what we want.
-
-To enable injection we need to tell the compiler that we use `URLSessionDownloader` as a default instance for the protocol `DownloaderInterface`:
-
-```swift
-import Inject
-
-extension DefaultValues {
-    var imageDownloader: DownloaderInterface { URLSessionDownloader() }
-}
-```
-
-We also can now refer to it with a `KeyPath` `\DefaultValues.imageDownloader` which is very handy since we would need to replace it once if we changed from `URLSession` to something else.
-
-That's all we need to use the instance in our view:
-
-```swift
-import Inject
-
-struct RemoteImage: View, Injectable {
-    @Injected(\.imageDownloader) var downloader
-```
-
-We have to mark our view as `Injectable` which is an empty protocol enabling the `injecting(_:_:)` function. And tell which instance we need, `\.imageDownloader` is a short syntax for `\.DefaultValues.imageDownloader`.
-
-Now in our preview, we can easily replace the production instance of the downloader with our mock that provides a static test image, error, and other cases we want to test.
-
-```swift
-actor MockDownloader: DownloaderInterface {
-    func downloadImage(url: URL) async throws -> UIImage {
-        return testImage
-    }
+struct SomeView: View {
+    @Injected(\.networking) var network
+    ...
 }
 
-struct RemoteImage_Previews: PreviewProvider {
+extension SomeView: Injectable {}
+
+struct SomeView_Previews: PreviewProvider {
     static var previews: some View {
-        RemoteImage(url: tesImageURL)
-            .injecting(MockDownloader(), for: \.downloader)
+        SomeView()
+            .injecting(MockNetworking(), for: \.network)
     }
 }
 ```
 
-## Dependency Scope and Lifetime 
+With this convenient property wrapper `@Injected` you define a dependency requirement in a declarative way:
+- `\.networking` is the `KeyPath` to the instance to be obtained at [`\DefaultValues.networking`. ](#default-values)
+ 
+- `network` is the name of our injection point that we use to inject in preview `.injecting(MockNetworking(), for: \.network)`.
+It behaves just like a normal variable would, with one exception, instead of providing an instance it provides a `Dependency<T>` wrapper, that has a computed property `.instance` to obtain an actual instance of type `T`.
 
-By default, all the dependencies are **providing a new instance** (`.temporary`)
-and **for each injection point** (`.local`) 
-and deallocated once an injection point is deallocated.
+- **MockNetworking** - A class that we use only in tests or previews, that might simulate the network.
+
+- Note: *We have to mark our view with an empty protocol `Injectable` to enable the `injecting(_:_:)` function.*
+
+**That's it, you are done with dependency injection without a need to know what exactly that is.**
+
+
+The only thing that is missing is to tell the compiler what are the default values for our `\.networking` and `\.parser` dependencies. And that's where `DefaultValues` come in handy.
+
+## Default Values
+
+**Unlike other popular solutions Inject doesn't have a container** instead it provides you with a `DefaultValues` class to extend with computed properties.
+
+**You never need to create an instance of this class**, all you need to do is to extend it with the variable of the type of the dependency it represents and return a default implementation for it:
+
 ```swift
-@Injected(\.networking, .temporary, .local) var network
+extension DefaultValues {
+    /// Default instance for Networking
+    var networking: Networking {
+        HTTPNetworking()
+    }
+
+    /// Default instance for Parser
+    var parser: Parser {
+        JSONParser()
+    }
+}
 ```
 
-But you can alter it with `.shared` ``Dependency/Scope`` to provide the same instance to all consumers with `.shared` ``Dependency/Scope`` preferred.
-Also, you can configure a `.permanent` ``Lifespan`` to hold it until the termination of the app.
+If you noticed `networking` and `parser` are the names we referred to earlier.
+
+## Dependency configuration
+
+You might wonder, what is the lifespan of the instances provided? Do they stay in memory forever like singletons or they are destroyed when the object that has them `@Injected` is destroyed? 
+
+And what is the scope, are all instances for all classes the same, or each class will have a new instance for its `@Injected`?
+
+The answer is, by default, all the instances are created for each `@Injected` and are destroyed once the object that holds `@Injected` is destroyed.
+
+But you can change that with the `Scope` and `Lifespan`, default values would be:
+
+```swift
+@Injected(\.networking, scope: .local, lifespan: .temporary) var network
+```
+
+here are the possible values:
+
+### Scope
+
+- `.local` - new instance for each `@Injected`
+- `.shared` - same instance for all `@Injected`
+
+### Lifespan
+
+- `.permanent` - instance stays till the app is deallocated.
+- `.temporary` - instance deallocated when the **last** `@Injected` referencing it is deallocated.
+
+## Why yet another DI framework?
+
+This is the question I asked the most.
+
+Here are some of the reasons to try *Inject* and decide for yourself:
+
+- Thread safety using `@MainActor`
+- Inject doesn't resolve instances using a container, it doesn't have a container in the first place. Which is a huge advantage over other popular DI solutions for which it is the biggest bottleneck.
+- Compile-time check that all the instances provided, which removes a whole layer of errors.
+- Inject's API operates simple concepts like instance, injection/replacement, scope, and lifespan.
+- It's extremely modular, you one-line it anywhere you want.
+
+There is much more than that, I will soon provide a couple of examples using inject in the app and in another library to showcase how powerful and flexible Inject is.
+
+Meanwhile, it's a good candidate for you to try and make your dependency injection a breeze.
+
 
 # Installation
 
@@ -123,19 +141,5 @@ Inject is designed for Swift 5. To depend on the Inject package, you need to dec
 .package(url: "https://github.com/MaximBazarov/Inject.git", from: "1.0.0")
 ```
 
-## Why yet another DI framework?
-This is the question I asked the most and I share your frustration with other DI solutions. 
-In fact that's the very reason Inject was created. 
 
-Here are some of the reasons, and I'm not saying you should use Inject. 
-I'm saying you have to try it and decide for yourself and that's why:
-
-- Thread safety using `@MainActor`
-- Inject doesn't introduce a container instance. 
-- No need to register instance in a container, defininition of a computed property with the instance instead. 
-- Compile-time check that all the instances provided, which removes a whole layer of errors.
-- Inject's API operates simple concepts like instance, injection/replacement, scope and lifetime.
-- Enables you to keep your code modular for free.
-
-I believe all that makes it a good candidate to try and make your opinion.
 
