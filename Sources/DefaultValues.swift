@@ -104,9 +104,8 @@ public final class DefaultValues {
             }
         }
         
-        typealias ID = ObjectIdentifier
         static func == (lhs: DefaultValues.StorageID, rhs: DefaultValues.StorageID) -> Bool {
-            let equalIDs = ID(lhs.storageKeyPath) == ID(rhs.storageKeyPath)
+            let equalIDs = lhs.storageKeyPath == rhs.storageKeyPath
             switch (lhs.dependencyKey, rhs.dependencyKey) {
             case (.none, .none): return equalIDs
             case (.none, .some), (.some, .none): return false
