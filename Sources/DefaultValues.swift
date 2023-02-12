@@ -98,15 +98,14 @@ public final class DefaultValues {
         let dependencyKey: DependencyKey?
         
         func hash(into hasher: inout Hasher) {
-            hasher.combine(ObjectIdentifier(storageKeyPath))
+            hasher.combine(storageKeyPath)
             if let dependencyKey {
                 hasher.combine(dependencyKey)
             }
         }
         
-        typealias ID = ObjectIdentifier
         static func == (lhs: DefaultValues.StorageID, rhs: DefaultValues.StorageID) -> Bool {
-            let equalIDs = ID(lhs.storageKeyPath) == ID(rhs.storageKeyPath)
+            let equalIDs = lhs.storageKeyPath == rhs.storageKeyPath
             switch (lhs.dependencyKey, rhs.dependencyKey) {
             case (.none, .none): return equalIDs
             case (.none, .some), (.some, .none): return false
