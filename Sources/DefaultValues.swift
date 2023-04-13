@@ -1,18 +1,16 @@
-//
 //===----------------------------------------------------------------------===//
 //
-// This source file is part of the Inject package open source project
+// This source file is part of the Decide package open source project
 //
-// Copyright (c) 2020-2022 Maxim Bazarov and the Inject package
+// Copyright (c) 2020-2023 Maxim Bazarov and the Decide package
 // open source project authors
-// Licensed under Apache License v2.0
+// Licensed under MIT
 //
 // See LICENSE.txt for license information
 //
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: MIT
 //
 //===----------------------------------------------------------------------===//
-//
 
 import Foundation
 

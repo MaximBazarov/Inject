@@ -1,18 +1,16 @@
-//
 //===----------------------------------------------------------------------===//
 //
-// This source file is part of the Inject package open source project
+// This source file is part of the Decide package open source project
 //
-// Copyright (c) 2020-2022 Maxim Bazarov and the Inject package
+// Copyright (c) 2020-2023 Maxim Bazarov and the Decide package
 // open source project authors
-// Licensed under Apache License v2.0
+// Licensed under MIT
 //
 // See LICENSE.txt for license information
 //
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: MIT
 //
 //===----------------------------------------------------------------------===//
-//
 
 import Foundation
 
@@ -90,9 +88,9 @@ extension Dependency {
 @MainActor
 public final class Dependency<Value> {
     typealias StorageKeyPath = DefaultValues.KeyPath<Value>
-    
+
     private let storageKeyPath: StorageKeyPath
-    
+
     private lazy var key = DependencyKey(
         id: ObjectIdentifier(self),
         keyPath: ObjectIdentifier(storageKeyPath)
@@ -100,7 +98,7 @@ public final class Dependency<Value> {
     private let scope: Scope
     private let lifespan: Lifespan
     private var localValue: Value?
-    
+
     init(
         _ storageKeyPath: StorageKeyPath,
         lifespan: Lifespan = .temporary,

@@ -106,7 +106,7 @@ and deallocated once an injection point is deallocated.
 @Injected(\.networking, .temporary, .local) var network
 ```
 
-But you can alter it with `.shared` ``Dependency/Scope`` to provide the same instance to all consumers with `.shared` ``Dependency/Scope`` preferred.
+But you can alter it with `.shared` ``Scope`` to provide the same instance to all consumers with `.shared` ``Scope`` preferred.
 Also, you can configure a `.permanent` ``Lifespan`` to hold it until the termination of the app.
 
 ## Topics

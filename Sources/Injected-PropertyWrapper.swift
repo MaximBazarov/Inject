@@ -1,18 +1,16 @@
-//
 //===----------------------------------------------------------------------===//
 //
-// This source file is part of the Decore package open source project
+// This source file is part of the Decide package open source project
 //
-// Copyright (c) 2020-2022 Maxim Bazarov and the Decore package
+// Copyright (c) 2020-2023 Maxim Bazarov and the Decide package
 // open source project authors
-// Licensed under Apache License v2.0
+// Licensed under MIT
 //
 // See LICENSE.txt for license information
 //
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: MIT
 //
 //===----------------------------------------------------------------------===//
-//
 
 import Foundation
 
@@ -30,25 +28,25 @@ import Foundation
 /// ```swift
 /// service.instance.doSomething()
 /// ```
-/// Depending on the ``Dependency/Scope`` and ``Lifespan``
+/// Depending on the ``Scope`` and ``Lifespan``
 /// provided it will be the new or shared instance.
 @MainActor
 @propertyWrapper
 public final
 class Injected<Value> {
     private let dependency: Dependency<Value>
-    
+
     public var wrappedValue: Dependency<Value> {
         get { dependency }
     }
-    
+
     /// Returns a ``Dependency`` configured with given
-    /// ``Dependency/Scope`` and ``Lifespan``.
+    /// ``Scope`` and ``Lifespan``.
     ///
     /// - Parameters:
     ///   - keyPath: keyPath in the ``DefaultValues``
     ///   - lifespan: ``Lifespan`` **`.temporary`** by default.
-    ///   - scope: ``Dependency/Scope`` **`.local`** by default.
+    ///   - scope: ``Scope`` **`.local`** by default.
     public init(
         _ keyPath: DefaultValues.KeyPath<Value>,
         lifespan: Lifespan = .temporary,
