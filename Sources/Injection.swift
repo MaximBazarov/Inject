@@ -59,6 +59,7 @@ import Foundation
             return value
         }
 
+
         // resolve shared
         switch deallocationStrategy {
         case .neverDeallocated:

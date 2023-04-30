@@ -42,6 +42,12 @@ extension InstanceProviders {
 }
 
 class Consumer_OnConsumerNeverDeallocated {
+    static let shared = Injection<ReportingObject>(
+        create: .shared,
+        deallocate: .whenLastConsumerLeave,
+        instance: ReportingObject()
+    )
+    @Instance(Consumer_OnConsumerNeverDeallocated.shared) var depp
     @Instance(\.depOnConsumerNeverDeallocated) var dependencyA
 }
 class Consumer_OnConsumerWhenLastLeave {
