@@ -33,13 +33,7 @@ let package = Package(
             name: "Inject", dependencies: [], path: "Sources"
         ),
         .testTarget(
-            name: "Unit-Tests", dependencies: ["Inject"], path: "Tests/Unit"
+            name: "Tests", dependencies: ["Inject"], path: "Tests"
         ),
-        .testTarget(
-            name: "Integration-Tests", dependencies: ["Inject"], path: "Tests/Integration"
-        ),
-        .testTarget(
-            name: "Overrides-Tests", dependencies: ["Inject"], path: "Tests/Overrides"
-        )
     ]
 )

@@ -18,58 +18,158 @@ import Foundation
 @MainActor public final class Injection<O> {
 
     // Configuration
-    let instantiationStrategy: InstantiationStrategy
-    let deallocationStrategy: DeallocationStrategy
+    let context: Context
+    let strategy: Strategy
     let instance: () -> O
 
     // Storage
     var sharedInstance: O?
     weak var sharedNonretainingInstance: AnyObject?
-
     var overridden: Injection<O>?
 
     /// Configure the injection of the dependency object.
     /// - Parameters:
-    ///   - create: ``InstantiationStrategy``
-    ///   - deallocate: ``DeallocationStrategy``
+    ///   - strategy: ``Strategy``
     ///   - instance: an instance of the object.
     ///   Will be used or not depending on the `strategy` and `storage`
     public init(
-        create: InstantiationStrategy,
-        deallocate: DeallocationStrategy,
-        instance: @escaping @autoclosure () -> O
+        strategy: Strategy,
+        instance: @escaping @autoclosure () -> O,
+        file: String = #file,
+        fileID: String = #fileID,
+        line: Int = #line,
+        column: Int = #column,
+        function: String = #function
     ) {
-        self.instantiationStrategy = create
-        self.deallocationStrategy = deallocate
+        self.context = Context(
+            file: file,
+            line: line,
+            column: column,
+            function: function
+        )
+        self.strategy = strategy
         self.instance = instance
     }
 
-    func getInstance(for consumer: Instance<O>, context: Context) -> O {
-        if let overridden {
-            return overridden.getInstance(for: consumer, context: context)
+    init(strategy: Strategy,
+         instance: @escaping @autoclosure () -> O,
+         context: Context
+    ) {
+        self.strategy = strategy
+        self.instance = instance
+        self.context = context
+    }
+
+    func getInstance(
+        for consumer: Instance<O>,
+        context: Context,
+        isOverride: Bool = false
+    ) -> O {
+        // If we have instance directly injected, return right away.
+        // we must check it before overrides because if it's
+        // instantiated already it's better to keep consistency.
+        if let localInstance = consumer.localInstance {
+            logger.log(injection: self, returnedLocalInstance: localInstance, context: context)
+            return localInstance
         }
 
-        // If we have instance directly injected, return right away.
-        if let localInstance = consumer.localInstance { return localInstance }
+        if let overridden {
+            return overridden.getInstance(for: consumer, context: context, isOverride: true)
+        }
 
         // resolve on consumer
-        if instantiationStrategy == .onConsumer {
-            let value = consumer.localInstance ?? instance()
+        if strategy.create == .perConsumer {
+            let value = instance()
             consumer.localInstance = value
+            logger.log(injection: self, returnedLocalInstance: value, context: context)
             return value
         }
 
-
         // resolve shared
-        switch deallocationStrategy {
+        switch strategy.destroy {
         case .neverDeallocated:
-            let new = sharedInstance ?? instance()
+            if let sharedInstance {
+                logger.log(injection: self, returnedInstanceFromStorage: sharedInstance, isOverride: isOverride, isRetaining: true, context: context)
+                consumer.localInstance = sharedInstance
+                return sharedInstance
+            }
+
+            let new = instance()
+            logger.log(injection: self, createdNewInstance: new, isOverride: isOverride, context: context)
+
             sharedInstance = new
+            consumer.localInstance = new
+
+            logger.log(injection: self, returnedInstanceFromStorage: new, isOverride: isOverride, isRetaining: true, context: context)
             return new
         case .whenLastConsumerLeave:
-            let new = sharedNonretainingInstance as? O ?? instance()
+            if let sharedInstance = sharedNonretainingInstance as? O {
+                logger.log(injection: self, returnedInstanceFromStorage: sharedInstance, isOverride: isOverride, isRetaining: false, context: context)
+                consumer.localInstance = sharedInstance
+                return sharedInstance
+            }
+
+            let new = instance()
+            logger.log(injection: self, createdNewInstance: new, isOverride: isOverride, context: context)
+
             sharedNonretainingInstance = new as AnyObject
+            consumer.localInstance = new
             return new
+        }
+    }
+}
+
+//===----------------------------------------------------------------------===//
+// MARK: - Override
+//===----------------------------------------------------------------------===//
+
+public extension Injection {
+    func override(
+        with instance: @escaping (O) -> O,
+        strategy: Strategy? = nil,
+        file: String = #file,
+        fileID: String = #fileID,
+        line: Int = #line,
+        column: Int = #column,
+        function: String = #function
+    ) {
+        let context = Context(
+            file: file,
+            line: line,
+            column: column,
+            function: function
+        )
+        let override = Injection<O>(
+            strategy: strategy ?? self.strategy,
+            instance: instance(self.instance()),
+            context: context
+        )
+        self.overridden = override
+        logger.log(injection: self, overridden: override)
+    }
+
+    func override(
+        with injection: Injection<O>
+    ) {
+        self.overridden = injection
+    }
+
+    func rollbackOverride(
+        file: String = #file,
+        fileID: String = #fileID,
+        line: Int = #line,
+        column: Int = #column,
+        function: String = #function
+    ) {
+        let context = Context(
+            file: file,
+            line: line,
+            column: column,
+            function: function
+        )
+        if let overridden = self.overridden {
+            logger.log(injection: self, removedOverride: overridden, context: context)
+            self.overridden = nil
         }
     }
 }
