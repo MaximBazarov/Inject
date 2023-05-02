@@ -14,48 +14,8 @@
 
 import Foundation
 
-/// Provides an interface to extend with computed properties.
-/// Each computed property provides a name to reference in ``Injected``
-/// and a type for enclosed ``Dependency``.
-/// ```swift
-/// extension DefaultValues {
-///     var testService: TestServiceInterface { TestService() }
-/// }
-/// ```
-///> Warning:
-/// **Never use the @Injected inside another @Injected**
-/// it will create a cycle and your application will hang and
-/// then possibly killed by the system.
-/// ```swift
-/// var auth: Auth {
-///     @Injected(\.network) var network // DON'T
-///     Auth(network: network.instance)
-/// }
-///
-/// var network: Networking {
-///     @Injected(\.auth) var auth // DON'T
-///     Networking(auth: auth.instance)
-/// }
-/// ```
-/// Instead, move the dependency from the initializer into the injected property.
-/// ```swift
-/// final class Networking {
-///   @Injected(\.auth) var auth
-/// }
-///
-/// final class Auth {
-///   @Injected(\.network) var network
-/// }
-/// ```
-/// now you can remove them from initializer and can safely resolve this cross dependency.
-/// ```swift
-/// extension DefaultValues {
-///     var auth: Auth { Auth() }
-///     var network: Networking { Networking() }
-/// }
-/// ```
-@MainActor
-public final class DefaultValues {
+@available(*, deprecated, message: "Inject doesn't use DefaultValues any more, please refer to Readme.")
+@MainActor public final class DefaultValues {
     public typealias KeyPath<Value> = Swift.KeyPath<DefaultValues, Value>
     
     private static let shared = DefaultValues()
