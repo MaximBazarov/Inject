@@ -13,17 +13,12 @@
 //===----------------------------------------------------------------------===//
 import Foundation
 
-/// Adds ``injecting(_:for:)`` to enable ``Dependency`` overriding.
+@available(*, deprecated, message: "This api isn't available, please refer to Readme.")
 public protocol Injectable {}
 
+@available(*, deprecated, message: "This api isn't available, please refer to Readme.")
 public extension Injectable {
-    
-    /// Replaces the instance of the `Value` for given ``Injected`` property.
-    ///
-    /// - Parameters:
-    ///   - newValue: A value to replace with.
-    ///   - keyPath: Key path to the ``Injected`` property.
-    /// - Returns: An instance of the dependency of type `Value`
+    @available(*, deprecated, message: "This api isn't available, please refer to Readme.")
     @MainActor func injecting<Value>(
         _ newValue: Value,
         for keyPath: KeyPath<Self, Dependency<Value>>

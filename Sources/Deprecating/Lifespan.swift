@@ -12,8 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-/// Dependency lifespan defines whether dependency
-/// needs to stay after consumer is deallocated.
+@available(*, deprecated, message: "This api isn't available, please refer to Readme.")
 public enum Lifespan {
     /// Stays until application is alive.
     case permanent

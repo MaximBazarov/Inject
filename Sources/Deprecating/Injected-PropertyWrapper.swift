@@ -14,22 +14,7 @@
 
 import Foundation
 
-/// An injected property that provides an ``Dependency/instance``
-/// based on configuration.
-///
-/// To define an injection point anywhere in your app:
-/// ```swift
-/// final class MyAwesomeView: Injectable {
-///     @Injected(\.testService) var service
-/// }
-/// ```
-/// Then you can access the `testService` instance in your code
-/// by using ``Dependency/instance`` computed property.
-/// ```swift
-/// service.instance.doSomething()
-/// ```
-/// Depending on the ``Scope`` and ``Lifespan``
-/// provided it will be the new or shared instance.
+@available(*, deprecated, message: "This api isn't available, please refer to Readme.")
 @MainActor
 @propertyWrapper
 public final

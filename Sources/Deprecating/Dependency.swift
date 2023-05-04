@@ -15,6 +15,7 @@
 import Foundation
 
 // MARK: - Public interface
+@available(*, deprecated, message: "Inject doesn't use Dependency<Value> any more, please refer to Readme.")
 extension Dependency {
     /// An instance of the dependency.
     public var instance: Value {
@@ -28,65 +29,8 @@ extension Dependency {
     }
 }
 
-// MARK: - Dependency<Value>
-/// A type that represents a dependency with given ``Scope`` and ``Lifespan``.
-///
-/// When you use
-/// ```swift
-/// final class MyAwesomeComponent: Injectable {
-///     @Injected(\.someServiceKey, .temporary, .local) var service
-/// }
-/// ```
-/// `service` variable is of type ``Dependency``.
-/// The instance itself, using ``Dependency/instance``
-/// is of type `someServiceKey` in ``DefaultValues`` is e.g.
-/// `SomeServiceInterface` protocol.
-///
-/// ``Injectable`` marks the class to tell the compiler
-/// it has ``Injectable/injecting(_:for:)`` function.
-///
-/// ## Scope and Lifespan configuration
-///
-/// **`.temporary`** is the configuration of the ``Lifespan`` meaning
-/// we don't want to hold the instance of this service once we are done.
-///
-/// **`.local`** is the ``Scope`` of the injection,
-/// which means we want our personal instance to be provided,
-/// not the one that is shared with others.
-///
-/// _You can omit both `.temporary` and `.local` since these are_
-/// _the default values for the configuration._
-/// ```swift
-/// final class MyAwesomeComponent: Injectable {
-///     @Injected(\.someServiceKey) var service
-/// }
-/// ```
-///
-/// Now you can access your instance using the ``Dependency/instance`` computed property.
-/// ```swift
-/// func do() {
-///     service.instance.doWork()
-/// }
-/// ```
-///
-/// ## Injecting
-/// To inject another than production instance in your tests or previews
-/// or anywhere else:
-/// ```swift
-/// let component = MyAwesomeComponent()
-///    .injecting(
-///        SomeMock(), // injected instance
-///        for: \.service
-///    )
-/// // component.service.instance is the injected instance that we provided.
-/// ```
-///
-/// Note that we use the `KeyPath` to the variable in `MyAwesomeComponent` and
-/// not in the ``DefaultValues`` that's because we want to inject only
-/// for `MyAwesomeComponent` without affecting other consumers of the service.
-///
-@MainActor
-public final class Dependency<Value> {
+@available(*, deprecated, message: "Inject doesn't use Dependency<Value> any more, please refer to Readme.")
+@MainActor public final class Dependency<Value> {
     typealias StorageKeyPath = DefaultValues.KeyPath<Value>
 
     private let storageKeyPath: StorageKeyPath

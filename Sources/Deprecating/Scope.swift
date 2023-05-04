@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-/// Defines the way an instance is obtained.
+@available(*, deprecated, message: "This api isn't available, please refer to Readme.")
 public enum Scope {
     /// New instance of a dependency.
     case local
