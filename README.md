@@ -211,8 +211,8 @@ This way, you can have a single source of truth for the injection configuration.
 
 There are three new strategies and their respective scope and lifetime:
 
-`.shared`: scope: `.shared`, lifespan: `.temporary`
-`.singleton`: scope: `.shared`, lifespan: `.permanent`
-`.onDemand`: scope: `.local`, lifespan: `.temporary`
+- `.shared`: scope: `.shared`, lifespan: `.temporary`
+- `.singleton`: scope: `.shared`, lifespan: `.permanent`
+- `.onDemand`: scope: `.local`, lifespan: `.temporary`
 
 Please review and adjust your code according to these updated strategies and scopes.
